@@ -71,7 +71,6 @@ const updateItem = id => {
                                                 <label class="ml-2 mr-4">販売中</label>
                                                 <input type="radio" id="is_selling" name="is_selling" v-model="form.is_selling" value="0">
                                                 <label class="ml-2 mr-4">停止中</label>
-
                                             </div>
                                         </div>
                                         <div class="p-2 w-full">
