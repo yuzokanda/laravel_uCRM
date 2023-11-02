@@ -15,7 +15,7 @@ Route::resource('items', ItemController::class)
 Route::resource('customers', CustomerController::class)
 ->middleware(['auth', 'verified']);
 
-Route::resource('purchase', PurchaseController::class)
+Route::resource('purchases', PurchaseController::class)
 ->middleware(['auth', 'verified']);
 
 

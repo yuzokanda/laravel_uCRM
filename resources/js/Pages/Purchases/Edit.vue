@@ -4,24 +4,21 @@ import { Head } from '@inertiajs/inertia-vue3';
 import { onMounted, reactive, ref, computed } from 'vue';
 import { Inertia } from  '@inertiajs/inertia';
 import BreezeValidationErrors from '@/Components/ValidationErrors.vue';
-import { getToday } from '@/common';
-import MicroModal from '@/Components/MicroModal.vue';
-
+import dayjs from 'dayjs';
 
 const props = defineProps({
     errors: Object,
-    'items': Array
+    'items': Array,
+    'orders': Array
 });
 
 const itemList = ref([]);
 
 const form = reactive({
-    name: null,
-    memo: null,
-    price: null,
-    date: null,
-    customer_id: null,
-    status: true,
+    id: props.orders[0].id,
+    date:  dayjs(props.orders[0].created_at).format("YYYY-MM-DD"),
+    customer_id: props.orders[0].customer_id,
+    status: props.orders[0].status,
     items: []
 });
 
@@ -34,18 +31,17 @@ const totalPrice = computed(() => {
 });
 
 onMounted(() => {
-    form.date = getToday()
     props.items.forEach(item => {
         itemList.value.push({
             id: item.id,
             name: item.name,
             price: item.price,
-            quantity: 0
+            quantity: item.quantity
         })
     })
 });
 
-const storePurchase = () => {
+const updatePurchase = id => {
     itemList.value.forEach( item => {
         if( item.quantity > 0){
             form.items.push({
@@ -54,23 +50,19 @@ const storePurchase = () => {
             })
         }
     })
-    Inertia.post(route('purchases.store'), form )
+    Inertia.put(route('purchases.update', { purchase: id }), form )
 };
 
 const quantity = [ "0","1","2","3","4","5","6","7","8","9",];
 
-const setCustomerId = id => {
-    form.customer_id = id
-};
-
 </script>
 
 <template>
-    <Head title="購入画面" />
+    <Head title="購買履歴 編集画面" />
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">購入画面</h2>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">購買履歴 編集画面</h2>
         </template>
 
         <div class="py-12">
@@ -79,20 +71,20 @@ const setCustomerId = id => {
                     <div class="p-6 text-gray-900">
                         <section class="text-gray-600 body-font relative">
                             <BreezeValidationErrors :errors="errors" />
-                            <form @submit.prevent="storePurchase">
+                            <form @submit.prevent="updatePurchase(form.id)">
                             <div class="container px-5 py-8 mx-auto">
                                 <div class="lg:w-1/2 md:w-2/3 mx-auto">
                                     <div class="flex flex-wrap -m-2">
                                         <div class="p-2 w-full">
                                             <div class="relative">
                                                 <label for="date" class="leading-7 text-sm text-gray-600">日付</label>
-                                                <input type="date" id="date" name="date" v-model="form.date" class="w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out">
+                                                <input disabled type="date" id="date" name="date" :value="form.date" class="w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out">
                                             </div>
                                         </div>
                                         <div class="p-2 w-full">
                                             <div class="relative">
                                                 <label for="customer" class="leading-7 text-sm text-gray-600">会員名</label>
-                                                <MicroModal @update:customerId="setCustomerId"/>
+                                                <input disabled type="text" id="customer" name="customer" :value="props.orders[0].customer_name" class="w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out">
                                             </div>
                                         </div>
                                         <div class="w-full mt-8 mx-auto overflow-auto">
@@ -133,7 +125,14 @@ const setCustomerId = id => {
                                             </div>
                                         </div>
                                         <div class="p-2 w-full">
-                                            <button class="flex mx-auto text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg">登録する</button>
+                                            <div class="relative">
+                                                <label for="status" class="leading-7 text-sm text-gray-600">ステータス</label>
+                                                <input type="radio" v-model="form.status" id="status" name="status" :value="1">未キャンセル
+                                                <input type="radio" v-model="form.status" id="status" name="status" :value="0">キャンセルする
+                                            </div>
+                                        </div>
+                                        <div class="p-2 w-full">
+                                            <button class="flex mx-auto text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg">更新する</button>
                                         </div>
                                     </div>
                                 </div>
